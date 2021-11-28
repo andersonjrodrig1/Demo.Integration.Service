@@ -1,7 +1,8 @@
 ﻿using Demo.Integration.Service.Interfaces.Rest;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -16,30 +17,41 @@ namespace Demo.Integration.Service.Rest
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string> GetAsync(string url, Dictionary<string, string> headers, string mediaType) =>
-            await ExecuteAsync(HttpMethod.Get, mediaType, headers, url);
+        public async Task<string> GetAsync(string url, string mediaType, Dictionary<string, string> headers = null) => 
+            await ExecuteAsync(HttpMethod.Get, url, mediaType, headers);
 
-        private async Task<string> ExecuteAsync(HttpMethod method, string mediaType, Dictionary<string, string> headers, string url, string body = null)
+        private async Task<string> ExecuteAsync(HttpMethod method, string url, string mediaType, Dictionary<string, string> headers = null, string body = null)
         {
-            var request = new HttpRequestMessage();
-            request.Method = method;
-            request.Headers.Add("Accept", "*/*");
+            var result = string.Empty;
 
-            if (headers != null && headers.Any())
+            try
             {
-                foreach (KeyValuePair<string, string> keyValue in headers)
+                var request = new HttpRequestMessage(HttpMethod.Get, url)
                 {
-                    request.Headers.Add(keyValue.Key, keyValue.Value);
+                    Headers = { { HeaderNames.Accept, mediaType } }
+                };
+
+                using (var client = _httpClientFactory.CreateClient())
+                {
+                    var response = await client.SendAsync(request);
+                    response.EnsureSuccessStatusCode();
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new Exception($"Status Code: {response.StatusCode.GetHashCode()}, Content: {response.Content.ReadAsStringAsync().Result}");
+
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    {
+                        var read = new StreamReader(stream);
+                        result = read.ReadToEnd();
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri("http://viacep.com.br/");
-            client.DefaultRequestHeaders.Add("Accept", mediaType);
-
-            var response = await client.GetAsync(url);
-
-            return await response.Content.ReadAsStringAsync();
+            return result;
         }
 
         #region Dispose

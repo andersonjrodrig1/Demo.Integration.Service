@@ -35,7 +35,6 @@ namespace Demo.Integration.Service
             });
 
             services.AddControllers();
-
             services.AddHttpClient();
 
             services.AddScoped<IRestService, RestService>();
