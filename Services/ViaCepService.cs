@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Demo.Integration.Service.Services
 {
@@ -22,7 +23,7 @@ namespace Demo.Integration.Service.Services
             _logger = logger;
         }
 
-        public async Task<ViaCep> GetDataByCep(string cep)
+        public async Task<ViaCep> GetDataByCepJson(string cep)
         {
             var baseUrl = _configuration.GetSection("ExternalEndpoint:ViaCep:BaseUrl").Get<string>();
             var path = string.Format("/ws/{0}/json/", cep);
@@ -37,6 +38,27 @@ namespace Demo.Integration.Service.Services
             _logger.LogInformation($"{this.GetType().Name} - {MethodInfo.GetCurrentMethod().Name} - Response: {response}");
 
             return JsonConvert.DeserializeObject<ViaCep>(response);
+        }
+
+        public async Task<ViaCep> GetDataByCepXml(string cep)
+        {
+            var baseUrl = _configuration.GetSection("ExternalEndpoint:ViaCep:BaseUrl").Get<string>();
+            var path = string.Format("/ws/{0}/xml/", cep);
+            var mediaType = _configuration.GetSection("MediaType:Json").Get<string>();
+
+            var url = string.Concat(baseUrl, path);
+
+            _logger.LogInformation($"{this.GetType().Name} - {MethodInfo.GetCurrentMethod().Name} - Request: {url}");
+
+            var response = await _restService.GetAsync(url, mediaType);
+
+            _logger.LogInformation($"{this.GetType().Name} - {MethodInfo.GetCurrentMethod().Name} - Response: {response}");
+
+            var xDocument = XDocument.Parse(response);
+            var jsonDocument = JsonConvert.SerializeXNode(xDocument);
+            dynamic viaCep = JsonConvert.DeserializeObject<ViaCep>(jsonDocument);
+
+            return viaCep;
         }
 
         #region Dispose

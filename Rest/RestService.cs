@@ -26,7 +26,7 @@ namespace Demo.Integration.Service.Rest
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, url)
+                var request = new HttpRequestMessage(method, url)
                 {
                     Headers = { { HeaderNames.Accept, mediaType } }
                 };

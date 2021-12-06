@@ -6,6 +6,7 @@ namespace Demo.Integration.Service.Interfaces.Services
 {
     public interface IViaCepService : IDisposable
     {
-        Task<ViaCep> GetDataByCep(string cep);
+        Task<ViaCep> GetDataByCepJson(string cep);
+        Task<ViaCep> GetDataByCepXml(string cep);
     }
 }

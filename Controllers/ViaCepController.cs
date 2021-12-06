@@ -11,9 +11,16 @@ namespace Demo.Integration.Service.Controllers
     {
         [HttpGet]
         [Route("v1/{cep}/cep/json")]
-        public async Task<ViaCep> GetDataByCep(string cep, [FromServices] IViaCepService services)
+        public async Task<ViaCep> GetDataByCepJson(string cep, [FromServices] IViaCepService services)
         {
-            return await services.GetDataByCep(cep);
+            return await services.GetDataByCepJson(cep);
+        }
+
+        [HttpGet]
+        [Route("v1/{cep}/cep/xml")]
+        public async Task<ViaCep> GetDataByCepXml(string cep, [FromServices] IViaCepService services)
+        {
+            return await services.GetDataByCepXml(cep);
         }
     }
 }
